@@ -1,0 +1,6 @@
+Base.:(log)(dnum::DualNumber) = DualNumber(log(dnum.real), dnum.dual / dnum.real)
+Base.:(sin)(dnum::DualNumber) = DualNumber(sin(dnum.real), cos(dnum.real) * dnum.dual)
+Base.:(cos)(dnum::DualNumber) = DualNumber(cos(dnum.real), -sin(dnum.real) * dnum.dual)
+Base.:(tan)(dnum::DualNumber) = DualNumber(tan(dnum.real), dnum.dual * ((1 / cos(dnum.real)) ^ 2))
+Base.:(exp)(dnum::DualNumber) = DualNumber(exp(dnum.real), exp(dnum.real) * dnum.dual)
+Base.:(sqrt)(dnum::DualNumber) = DualNumber(sqrt(dnum.real),  dnum.dual / (2 * exp(dnum.real)))
