@@ -5,7 +5,7 @@ function derivative(fx::Function, wrt_var_idx::Int, args::Union{<:Real, Array{<:
 end
 
 function derivative(fx::Function, args::Union{<:Real, Array{<:Real}})
-    derivatives = [derivative(fx, idx, args) for (idx,) in enumerate(args)]
+    derivatives = [derivative(fx, idx, args) for idx in 1:length(args)]
     return derivatives
 end
 
