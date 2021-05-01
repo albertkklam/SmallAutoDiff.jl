@@ -1,21 +1,11 @@
 function derivative(fx::Function, wrt_var_idx::Int, args::Union{<:Real, Array{<:Real}})
     @assert length(args) >= wrt_var_idx
-    dual_args = []
-    for (idx, arg) in enumerate(args)
-        if idx == wrt_var_idx
-            push!(dual_args, DualNumber(arg, 1))
-        else
-            push!(dual_args, DualNumber(arg, 0))
-        end
-    end
+    dual_args = [idx == wrt_var_idx ? DualNumber(arg, 1) : DualNumber(arg, 0) for (idx, arg) in enumerate(args)]
     return fx(dual_args...).dual
 end
 
 function derivative(fx::Function, args::Union{<:Real, Array{<:Real}})
-    derivatives = []
-    for (idx, _) in enumerate(args)
-        push!(derivatives, derivative(fx, idx, args))
-    end
+    derivatives = [derivative(fx, idx, args) for (idx,) in enumerate(args)]
     return derivatives
 end
 
