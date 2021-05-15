@@ -9,7 +9,7 @@ function derivative(fx::Function, args::Union{<:Real, Array{<:Real}})
     return derivatives
 end
 
-differentiate(fx::Function, wrt_var_idx::Int) = ((args::Union{<:Real, Array{<:Real}}) -> derivative(fx::Function, wrt_var_idx::Int, args::Union{<:Real, Array{<:Real}}))
+differentiate(fx::Function, wrt_var_idx::Int) = ((args::Union{<:Real, Array{<:Real}}) -> derivative(fx, wrt_var_idx, args))
 
 function check_derivative(fx::Function, wrt_var_idx::Int, args::Union{<:Real, Array{<:Real}}, suspect::Real; 
                           h::Real=1e-7, rel_err::Real=1e-5, abs_err::Real=1e-8)
