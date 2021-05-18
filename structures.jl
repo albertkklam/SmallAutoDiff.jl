@@ -21,21 +21,23 @@ mutable struct ConstantNode <: Node
 end
 
 mutable struct OperationalNode <: Node
-    size::NTuple{N, Int} where {N}
-    eltype::Type
-    name::String
+    size::Union{Nothing, NTuple{N, Int}} where {N}
+    eltype::Union{Nothing, Type}
+    name::Union{Nothing, String}
 
-    left_operand::Node
+    operand::String
+    left_operand::Union{Nothing, Node}
     right_operand::Union{Nothing, Node}
-
 end
+
+OperationalNode(operand_name::String) = OperationalNode(nothing, nothing, nothing, operand_name, nothing, nothing)
 
 mutable struct Counter{T}
     node_type::T
     count::Int
 end
 
-Counter(node_type::Type{<:Node}) = Counter(node_type, 0)
+Counter(node_type::Union{Node, Type{<:Node}}) = Counter(node_type, 0)
 
 function VariableNode(node_parameters::NodeParameters, counter::Union{Nothing, Counter}=nothing)
     if !(isnothing(counter))
@@ -57,6 +59,13 @@ function ConstantNode(node_parameters::NodeParameters, counter::Union{Nothing, C
     return ConstantNode(node_parameters.size, node_parameters.eltype, name)
 end
 
-function OperationalNode(counter::Counter, left_operand::Node, right_operand::Union{Nothing, Node}, node_parameters::NodeParameters)
-
+function OperationalNode(node_parameters::NodeParameters, operand::String, left_operand::Node, 
+                         right_operand::Union{Nothing, Node}=nothing, counter::Union{Nothing, Counter}=nothing)
+    if !(isnothing(counter))
+        counter.count += 1
+        name = isnothing(node_parameters.name) ? "$(operand)_$(counter.count)" : node_parameters.name
+    else
+        name = isnothing(node_parameters.name) ? "$(operand)_1" : node_parameters.name
+    end
+    return OperationalNode(node_parameters.size, node_parameters.eltype, name, operand, left_operand, right_operand)
 end
