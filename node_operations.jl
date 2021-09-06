@@ -10,7 +10,7 @@ end
 
 for op = (:+, :-, :*, :/, :÷, :^)
         eval(quote
-                Base.broadcast(::typeof($op), left_node::Union{VariableNode, ConstantNode}, 
+                Broadcast.broadcasted(::typeof($op), left_node::Union{VariableNode, ConstantNode}, 
                          right_node::Union{VariableNode, ConstantNode}, 
                          name::Union{Nothing,String}=nothing,
                          counter::Union{Nothing, Counter}=nothing) = 
