@@ -120,5 +120,24 @@ function create_opnode(method::Symbol, left_node::Union{VariableNode, ConstantNo
     else
         result = Expr(:call, method, left_node.val, right_node.val)
     end
-    return OperationalNode(name, result, String(method), left_node, right_node, counter)
+    pretty_operand = prettify_operand(method)
+    return OperationalNode(name, result, pretty_operand, left_node, right_node, counter)
+end
+
+function prettify_operand(method::Symbol)
+    name_dict = Dict{Symbol, String}(
+        (:+) => "add", (:-) => "subtract", (:*) => "multiply", (:/) => "divide",
+        (:÷) => "integer_divide", (:^) => "power", (:⋅) => "dot_product", 
+        (:maximum) => "max", (:exp) => "exp", (:log) => "log", 
+        (:sin) => "sin", (:cos) => "cos"
+        )
+    method_str = String(method)
+    if startswith(method_str, ".")
+        pretty_name = "broadcast_" * name_dict[Symbol(method_str[2:end])]
+    elseif endswith(method_str, ".")
+        pretty_name = "broadcast_" * name_dict[Symbol(method_str[1:end-1])]
+    else 
+        pretty_name = name_dict[method]
+    end
+    return pretty_name
 end
