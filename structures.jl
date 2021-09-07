@@ -114,30 +114,26 @@ OperationalNode(node_parameters::NodeParameters, result::Union{Symbol,Expr}, ope
 function create_opnode(method::Symbol, left_node::Union{VariableNode, ConstantNode}, 
                        right_node::Union{Nothing, VariableNode, ConstantNode}=nothing, 
                        name::Union{Nothing,String}=nothing, 
-                       counter::Union{Nothing, Counter}=nothing)
-    if isnothing(right_node)
-        result = Expr(:call, method, left_node.val)
+                       counter::Union{Nothing, Counter}=nothing;
+                       broadcast_method::Bool=false, dims::Union{Nothing,Int}=nothing)
+    if isnothing(right_node) & (method != (:maximum))
+        result = broadcast_method ? Expr(:call, :broadcast, method, left_node.val) : Expr(:call, method, left_node.val)
+    elseif method == (:maximum)
+        result = isnothing(dims) ? Expr(:call, method, left_node.val) : Expr(:call, method, left_node.val, :($(Expr(:kw, :dims, dims))))
     else
-        result = Expr(:call, method, left_node.val, right_node.val)
+        result = broadcast_method ? Expr(:call, :broadcast, method, left_node.val, right_node.val) : Expr(:call, method, left_node.val, right_node.val)
     end
-    pretty_operand = prettify_operand(method)
+    pretty_operand = prettify_operand(method, broadcast_method)
     return OperationalNode(name, result, pretty_operand, left_node, right_node, counter)
 end
 
-function prettify_operand(method::Symbol)
+function prettify_operand(method::Symbol, broadcast_method::Bool)
     name_dict = Dict{Symbol, String}(
         (:+) => "add", (:-) => "subtract", (:*) => "multiply", (:/) => "divide",
         (:÷) => "integer_divide", (:^) => "power", (:⋅) => "dot_product", 
         (:maximum) => "max", (:exp) => "exp", (:log) => "log", 
         (:sin) => "sin", (:cos) => "cos"
         )
-    method_str = String(method)
-    if startswith(method_str, ".")
-        pretty_name = "broadcast_" * name_dict[Symbol(method_str[2:end])]
-    elseif endswith(method_str, ".")
-        pretty_name = "broadcast_" * name_dict[Symbol(method_str[1:end-1])]
-    else 
-        pretty_name = name_dict[method]
-    end
+    pretty_name = broadcast_method ? "broadcast_" * name_dict[method] : name_dict[method]
     return pretty_name
 end
