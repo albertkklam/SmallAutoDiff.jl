@@ -76,7 +76,7 @@ ConstantNode(node_parameters::NodeParameters, val::Union{Symbol,Expr},
 mutable struct OperationalNode <: Node
     name::String
     result::Union{Symbol,Expr}
-    operand::String
+    operator_name::String
     left_operand::Union{VariableNode, ConstantNode}
     right_operand::Union{Nothing, VariableNode, ConstantNode}
     size::Union{Int, NTuple{N, Int}} where {N}
@@ -84,32 +84,32 @@ mutable struct OperationalNode <: Node
 end
 
 function OperationalNode(name::Union{Nothing, String}, 
-                         result::Union{Symbol,Expr}, operand::String, 
+                         result::Union{Symbol,Expr}, operator_name::String, 
                          left_operand::Union{VariableNode, ConstantNode}, 
                          right_operand::Union{Nothing, VariableNode, ConstantNode}=nothing,
                          counter::Union{Nothing, Counter}=nothing)
     if isnothing(counter)
-        var_name = isnothing(name) ? "$(operand)_1" : name
+        var_name = isnothing(name) ? "$(operator_name)_1" : name
     else
         counter.count += 1
-        var_name = isnothing(name) ? "$(operand)_$(counter.count)" : name
+        var_name = isnothing(name) ? "$(operator_name)_$(counter.count)" : name
     end
     
     evaled_result = eval(result)
     result_type = typeof(evaled_result)
     @assert result_type <: Union{Real, Array}
     if result_type <: Array
-        return OperationalNode(var_name, result, operand, left_operand, right_operand, size(evaled_result), eltype(evaled_result))
+        return OperationalNode(var_name, result, operator_name, left_operand, right_operand, size(evaled_result), eltype(evaled_result))
     else
-        return OperationalNode(var_name, result, operand, left_operand, right_operand, 1, eltype(evaled_result))
+        return OperationalNode(var_name, result, operator_name, left_operand, right_operand, 1, eltype(evaled_result))
     end
 end
 
-OperationalNode(node_parameters::NodeParameters, result::Union{Symbol,Expr}, operand::String,
+OperationalNode(node_parameters::NodeParameters, result::Union{Symbol,Expr}, operator_name::String,
                 left_operand::Union{VariableNode, ConstantNode}, 
                 right_operand::Union{Nothing, VariableNode, ConstantNode}=nothing, 
                 counter::Union{Nothing, Counter}=nothing) = 
-                OperationalNode(node_parameters.name, result, operand, left_operand, right_operand, counter)
+                OperationalNode(node_parameters.name, result, operator_name, left_operand, right_operand, counter)
 
 function create_opnode(method::Symbol, left_node::Union{VariableNode, ConstantNode}, 
                        right_node::Union{Nothing, VariableNode, ConstantNode}=nothing, 
@@ -123,17 +123,17 @@ function create_opnode(method::Symbol, left_node::Union{VariableNode, ConstantNo
     else
         result = broadcast_method ? Expr(:call, :broadcast, method, left_node.val, right_node.val) : Expr(:call, method, left_node.val, right_node.val)
     end
-    pretty_operand = prettify_operand(method, broadcast_method)
-    return OperationalNode(name, result, pretty_operand, left_node, right_node, counter)
+    pretty_operator_name = prettify_operator_name(method, broadcast_method)
+    return OperationalNode(name, result, pretty_operator_name, left_node, right_node, counter)
 end
 
-function prettify_operand(method::Symbol, broadcast_method::Bool)
+function prettify_operator_name(method::Symbol, broadcast_method::Bool)
     name_dict = Dict{Symbol, String}(
         (:+) => "add", (:-) => "subtract", (:*) => "multiply", (:/) => "divide",
         (:÷) => "integer_divide", (:^) => "power", (:⋅) => "dot_product", 
         (:maximum) => "max", (:exp) => "exp", (:log) => "log", 
         (:sin) => "sin", (:cos) => "cos"
         )
-    pretty_name = broadcast_method ? "broadcast_" * name_dict[method] : name_dict[method]
-    return pretty_name
+    pretty_operator_name = broadcast_method ? "broadcast_" * name_dict[method] : name_dict[method]
+    return pretty_operator_name
 end
