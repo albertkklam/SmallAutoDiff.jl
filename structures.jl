@@ -75,18 +75,17 @@ ConstantNode(node_parameters::NodeParameters, val::Union{Symbol,Expr},
 
 mutable struct OperationalNode <: Node
     name::String
-    result::Union{Symbol,Expr}
+    val::Union{Symbol,Expr}
     operator_name::String
-    left_operand::Union{VariableNode, ConstantNode}
-    right_operand::Union{Nothing, VariableNode, ConstantNode}
+    left_operand::Node
+    right_operand::Union{Nothing, Node}
     size::Union{Int, NTuple{N, Int}} where {N}
     eltype::Type
 end
 
 function OperationalNode(name::Union{Nothing, String}, 
-                         result::Union{Symbol,Expr}, operator_name::String, 
-                         left_operand::Union{VariableNode, ConstantNode}, 
-                         right_operand::Union{Nothing, VariableNode, ConstantNode}=nothing,
+                         val::Union{Symbol,Expr}, operator_name::String, 
+                         left_operand::Node, right_operand::Union{Nothing, Node}=nothing,
                          counter::Union{Nothing, Counter}=nothing)
     if isnothing(counter)
         var_name = isnothing(name) ? "$(operator_name)_1" : name
@@ -95,36 +94,35 @@ function OperationalNode(name::Union{Nothing, String},
         var_name = isnothing(name) ? "$(operator_name)_$(counter.count)" : name
     end
     
-    evaled_result = eval(result)
-    result_type = typeof(evaled_result)
-    @assert result_type <: Union{Real, Array}
-    if result_type <: Array
-        return OperationalNode(var_name, result, operator_name, left_operand, right_operand, size(evaled_result), eltype(evaled_result))
+    evaled_val = eval(val)
+    val_type = typeof(evaled_val)
+    @assert val_type <: Union{Real, Array}
+    if val_type <: Array
+        return OperationalNode(var_name, val, operator_name, left_operand, right_operand, size(evaled_val), eltype(evaled_val))
     else
-        return OperationalNode(var_name, result, operator_name, left_operand, right_operand, 1, eltype(evaled_result))
+        return OperationalNode(var_name, val, operator_name, left_operand, right_operand, 1, eltype(evaled_val))
     end
 end
 
-OperationalNode(node_parameters::NodeParameters, result::Union{Symbol,Expr}, operator_name::String,
-                left_operand::Union{VariableNode, ConstantNode}, 
-                right_operand::Union{Nothing, VariableNode, ConstantNode}=nothing, 
+OperationalNode(node_parameters::NodeParameters, val::Union{Symbol,Expr}, operator_name::String,
+                left_operand::Node, right_operand::Union{Nothing, Node}=nothing, 
                 counter::Union{Nothing, Counter}=nothing) = 
-                OperationalNode(node_parameters.name, result, operator_name, left_operand, right_operand, counter)
+                OperationalNode(node_parameters.name, val, operator_name, left_operand, right_operand, counter)
 
-function create_opnode(method::Symbol, left_node::Union{VariableNode, ConstantNode}, 
-                       right_node::Union{Nothing, VariableNode, ConstantNode}=nothing, 
+function create_opnode(method::Symbol, left_node::Node, 
+                       right_node::Union{Nothing, Node}=nothing, 
                        name::Union{Nothing,String}=nothing, 
                        counter::Union{Nothing, Counter}=nothing;
                        broadcast_method::Bool=false, dims::Union{Nothing,Int}=nothing)
     if isnothing(right_node) & (method != (:maximum))
-        result = broadcast_method ? Expr(:call, :broadcast, method, left_node.val) : Expr(:call, method, left_node.val)
+        val = broadcast_method ? Expr(:call, :broadcast, method, left_node.val) : Expr(:call, method, left_node.val)
     elseif method == (:maximum)
-        result = isnothing(dims) ? Expr(:call, method, left_node.val) : Expr(:call, method, left_node.val, :($(Expr(:kw, :dims, dims))))
+        val = isnothing(dims) ? Expr(:call, method, left_node.val) : Expr(:call, method, left_node.val, :($(Expr(:kw, :dims, dims))))
     else
-        result = broadcast_method ? Expr(:call, :broadcast, method, left_node.val, right_node.val) : Expr(:call, method, left_node.val, right_node.val)
+        val = broadcast_method ? Expr(:call, :broadcast, method, left_node.val, right_node.val) : Expr(:call, method, left_node.val, right_node.val)
     end
     pretty_operator_name = prettify_operator_name(method, broadcast_method)
-    return OperationalNode(name, result, pretty_operator_name, left_node, right_node, counter)
+    return OperationalNode(name, val, pretty_operator_name, left_node, right_node, counter)
 end
 
 function prettify_operator_name(method::Symbol, broadcast_method::Bool)
