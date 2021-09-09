@@ -1,7 +1,7 @@
 using LinearAlgebra
 
-for op = (:+, :-, :*, :/, :÷, :^, :exp, :log, :sin, :cos)
-        if op ∈ Set([:exp, :log, :sin, :cos])
+for op = (:+, :-, :*, :/, :÷, :^, :sum, :exp, :log, :sin, :cos)
+        if op ∈ Set([:sum, :exp, :log, :sin, :cos])
                 eval(quote
                 Base.$op(left_node::Node, 
                          name::Union{Nothing,String}=nothing,

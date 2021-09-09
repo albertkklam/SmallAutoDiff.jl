@@ -129,7 +129,7 @@ function prettify_operator_name(method::Symbol, broadcast_method::Bool)
     name_dict = Dict{Symbol, String}(
         (:+) => "add", (:-) => "subtract", (:*) => "multiply", (:/) => "divide",
         (:÷) => "integer_divide", (:^) => "power", (:⋅) => "dot_product", 
-        (:maximum) => "max", (:exp) => "exp", (:log) => "log", 
+        (:sum) => "sum", (:maximum) => "max", (:exp) => "exp", (:log) => "log", 
         (:sin) => "sin", (:cos) => "cos"
         )
     pretty_operator_name = broadcast_method ? "broadcast_" * name_dict[method] : name_dict[method]
