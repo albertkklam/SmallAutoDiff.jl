@@ -13,4 +13,8 @@ export NodeParameters, Counter, VariableNode, ConstantNode, OperationalNode, cre
 
 include("node_operations.jl")
 
+include("grads.jl")
+export add_grad, subtract_grad, multiply_grad, divide_grad, power_grad, dot_product_grad
+export transpose_grad, maximum_grad, sum_grad, exp_grad, log_grad, sin_grad, cos_grad, unbroadcast_adjoint
+
 end
