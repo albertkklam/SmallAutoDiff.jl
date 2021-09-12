@@ -1,15 +1,16 @@
 module SmallAutoDiff
 
-include("dualnumber.jl")
+include("dualnumbers/dualnumber.jl")
 export DualNumber
 
-include("dualnumber_math.jl")
+include("dualnumbers/dualnumber_math.jl")
 
-include("forward.jl")
+include("dualnumbers/forward.jl")
 export derivative, differentiate, check_derivative
 
 include("structures.jl")
 export NodeParameters, Counter, VariableNode, ConstantNode, OperationalNode, create_opnode
+export NodesQueue, push!, popfirst!, ∈, length
 
 include("node_operations.jl")
 

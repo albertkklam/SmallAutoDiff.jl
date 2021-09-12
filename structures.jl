@@ -1,19 +1,19 @@
 abstract type Node end
 
-mutable struct NodeParameters
+struct NodeParameters
     name::Union{Nothing, String}
 end
 
 NodeParameters() = NodeParameters(nothing)
 
-mutable struct Counter{T}
+struct Counter{T}
     node_type::T
     count::Int
 end
 
 Counter(node_type::Union{Node, Type{<:Node}}) = Counter(node_type, 0)
 
-mutable struct VariableNode <: Node
+struct VariableNode <: Node
     name::String
     val::Union{Symbol,Expr}
     size::Union{Int, NTuple{N, Int}} where {N}
@@ -43,7 +43,7 @@ VariableNode(node_parameters::NodeParameters, val::Union{Symbol,Expr},
              counter::Union{Nothing, Counter}=nothing) = 
              VariableNode(node_parameters.name, val, counter)
 
-mutable struct ConstantNode <: Node
+struct ConstantNode <: Node
     name::String
     val::Union{Symbol,Expr}
     size::Union{Int, NTuple{N, Int}} where {N}
@@ -73,7 +73,7 @@ ConstantNode(node_parameters::NodeParameters, val::Union{Symbol,Expr},
              counter::Union{Nothing, Counter}=nothing) = 
              ConstantNode(node_parameters.name, val, counter)
 
-mutable struct OperationalNode <: Node
+struct OperationalNode <: Node
     name::String
     val::Union{Symbol,Expr}
     operator_name::String
@@ -134,4 +134,29 @@ function prettify_operator_name(method::Symbol, broadcast_method::Bool)
         )
     pretty_operator_name = broadcast_method ? "broadcast_" * name_dict[method] : name_dict[method]
     return pretty_operator_name
+end
+
+struct NodesQueue
+    nodes::Vector{Node}
+    node_names::Vector{String}
+end
+
+NodesQueue() = NodesQueue(Vector{Node}(), Vector{String}())
+
+function push!(nodes_queue::NodesQueue, node::Node)
+    push!(nodes_queue.nodes, node)
+    push!(nodes_queue.node_names, node.name)
+end
+
+function popfirst!(nodes_queue::NodesQueue)
+    popfirst!(nodes_queue.nodes)
+    popfirst!(nodes_queue.node_names)
+end
+
+function ∈(nodes_queue::NodesQueue, node::Node)
+    return node.name ∈ nodes_queue.node_names
+end
+
+function length(nodes_queue::NodesQueue)
+    return length(nodes_queue.nodes)
 end
