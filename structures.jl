@@ -6,7 +6,7 @@ end
 
 NodeParameters() = NodeParameters(nothing)
 
-struct Counter{T}
+mutable struct Counter{T}
     node_type::T
     count::Int
 end
@@ -143,7 +143,7 @@ end
 
 NodesQueue() = NodesQueue(Vector{Node}(), Vector{String}())
 
-function push!(nodes_queue::NodesQueue, node::Node)
+function Base.:push!(nodes_queue::NodesQueue, node::Node)
     push!(nodes_queue.nodes, node)
     push!(nodes_queue.node_names, node.name)
 end
@@ -153,10 +153,12 @@ function Base.:popfirst!(nodes_queue::NodesQueue)
     popfirst!(nodes_queue.node_names)
 end
 
-function ∈(nodes_queue::NodesQueue, node::Node)
+function Base.:∈(node::Node, nodes_queue::NodesQueue)
     return node.name ∈ nodes_queue.node_names
 end
 
-function length(nodes_queue::NodesQueue)
+Base.:∉(node::Node, nodes_queue::NodesQueue) = !∈(node, nodes_queue)
+
+function Base.:length(nodes_queue::NodesQueue)
     return length(nodes_queue.nodes)
 end
