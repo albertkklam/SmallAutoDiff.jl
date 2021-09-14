@@ -31,8 +31,8 @@ function VariableNode(name::Union{Nothing, String}, val::Union{Symbol,Expr},
     
     evaled_val = eval(val)
     val_type = typeof(evaled_val)
-    @assert val_type <: Union{Real, Array}
-    if val_type <: Array
+    @assert val_type <: Union{Real, AbstractArray}
+    if val_type <: AbstractArray
         return VariableNode(var_name, val, size(evaled_val), eltype(evaled_val))
     else
         return VariableNode(var_name, val, 1, eltype(evaled_val))
@@ -61,8 +61,8 @@ function ConstantNode(name::Union{Nothing, String}, val::Union{Symbol,Expr},
 
     evaled_val = eval(val)
     val_type = typeof(evaled_val)
-    @assert val_type <: Union{Real, Array}
-    if val_type <: Array
+    @assert val_type <: Union{Real, AbstractArray}
+    if val_type <: AbstractArray
         return ConstantNode(var_name, val, size(evaled_val), eltype(evaled_val))
     else
         return ConstantNode(var_name, val, 1, eltype(evaled_val))
@@ -96,8 +96,8 @@ function OperationalNode(name::Union{Nothing, String},
     
     evaled_val = eval(val)
     val_type = typeof(evaled_val)
-    @assert val_type <: Union{Real, Array}
-    if val_type <: Array
+    @assert val_type <: Union{Real, AbstractArray}
+    if val_type <: AbstractArray
         return OperationalNode(var_name, val, operator_name, left_operand, right_operand, size(evaled_val), eltype(evaled_val))
     else
         return OperationalNode(var_name, val, operator_name, left_operand, right_operand, 1, eltype(evaled_val))
@@ -130,7 +130,7 @@ function prettify_operator_name(method::Symbol, broadcast_method::Bool)
         (:+) => "add", (:-) => "subtract", (:*) => "multiply", (:/) => "divide",
         (:÷) => "integer_divide", (:^) => "power", (:⋅) => "dot_product", 
         (:sum) => "sum", (:maximum) => "maximum", (:exp) => "exp", (:log) => "log", 
-        (:sin) => "sin", (:cos) => "cos"
+        (:sin) => "sin", (:cos) => "cos", (:transpose) => "transpose"
         )
     pretty_operator_name = broadcast_method ? "broadcast_" * name_dict[method] : name_dict[method]
     return pretty_operator_name
@@ -148,7 +148,7 @@ function push!(nodes_queue::NodesQueue, node::Node)
     push!(nodes_queue.node_names, node.name)
 end
 
-function popfirst!(nodes_queue::NodesQueue)
+function Base.:popfirst!(nodes_queue::NodesQueue)
     popfirst!(nodes_queue.nodes)
     popfirst!(nodes_queue.node_names)
 end

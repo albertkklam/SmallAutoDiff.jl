@@ -1,7 +1,7 @@
 using LinearAlgebra
 
-for op = (:+, :-, :*, :/, :÷, :^, :sum, :exp, :log, :sin, :cos)
-        if op ∈ Set([:sum, :exp, :log, :sin, :cos])
+for op = (:+, :-, :*, :/, :÷, :^, :sum, :exp, :log, :sin, :cos, :transpose)
+        if op in Set([:sum, :exp, :log, :sin, :cos, :transpose])
                 eval(quote
                 Base.$op(left_node::Node, 
                          name::Union{Nothing,String}=nothing,
@@ -30,7 +30,7 @@ LinearAlgebra.:⋅(left_node::Node, right_node::Node,
                  create_opnode(:⋅, left_node, right_node, name, counter)
 
 for op = (:+, :-, :*, :/, :÷, :^, :exp, :log, :sin, :cos)
-        if op ∈ Set([:exp, :log, :sin, :cos])
+        if op in Set([:exp, :log, :sin, :cos])
                 eval(quote
                 Broadcast.broadcasted(::typeof($op), left_node::Node, 
                                       name::Union{Nothing,String}=nothing,
