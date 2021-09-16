@@ -15,12 +15,13 @@ Counter(node_type::Union{Node, Type{<:Node}}) = Counter(node_type, 0)
 
 struct VariableNode <: Node
     name::String
-    val::Union{Symbol,Expr}
+    val::Union{Symbol,Expr,Real,AbstractArray{<:Real}}
     size::Union{Int, NTuple{N, Int}} where {N}
     eltype::Type
 end
 
-function VariableNode(name::Union{Nothing, String}, val::Union{Symbol,Expr}, 
+function VariableNode(name::Union{Nothing, String}, 
+                      val::Union{Symbol,Expr,Real,AbstractArray{<:Real}}, 
                       counter::Union{Nothing, Counter}=nothing)
     if isnothing(counter)
         var_name = isnothing(name) ? "var_1" : name
@@ -31,26 +32,28 @@ function VariableNode(name::Union{Nothing, String}, val::Union{Symbol,Expr},
     
     evaled_val = eval(val)
     val_type = typeof(evaled_val)
-    @assert val_type <: Union{Real, AbstractArray}
-    if val_type <: AbstractArray
+    @assert val_type <: Union{Real, AbstractArray{<:Real}}
+    if val_type <: AbstractArray{<:Real}
         return VariableNode(var_name, val, size(evaled_val), eltype(evaled_val))
     else
         return VariableNode(var_name, val, 1, eltype(evaled_val))
     end
 end
 
-VariableNode(node_parameters::NodeParameters, val::Union{Symbol,Expr}, 
+VariableNode(node_parameters::NodeParameters, 
+             val::Union{Symbol,Expr,Real,AbstractArray{<:Real}}, 
              counter::Union{Nothing, Counter}=nothing) = 
              VariableNode(node_parameters.name, val, counter)
 
 struct ConstantNode <: Node
     name::String
-    val::Union{Symbol,Expr}
+    val::Union{Symbol,Expr,Real,AbstractArray{<:Real}}
     size::Union{Int, NTuple{N, Int}} where {N}
     eltype::Type
 end
 
-function ConstantNode(name::Union{Nothing, String}, val::Union{Symbol,Expr}, 
+function ConstantNode(name::Union{Nothing, String}, 
+                      val::Union{Symbol,Expr,Real,AbstractArray{<:Real}}, 
                       counter::Union{Nothing, Counter}=nothing)
     if isnothing(counter)
         var_name = isnothing(name) ? "const_1" : name
@@ -61,15 +64,16 @@ function ConstantNode(name::Union{Nothing, String}, val::Union{Symbol,Expr},
 
     evaled_val = eval(val)
     val_type = typeof(evaled_val)
-    @assert val_type <: Union{Real, AbstractArray}
-    if val_type <: AbstractArray
+    @assert val_type <: Union{Real, AbstractArray{<:Real}}
+    if val_type <: AbstractArray{<:Real}
         return ConstantNode(var_name, val, size(evaled_val), eltype(evaled_val))
     else
         return ConstantNode(var_name, val, 1, eltype(evaled_val))
     end
 end
 
-ConstantNode(node_parameters::NodeParameters, val::Union{Symbol,Expr}, 
+ConstantNode(node_parameters::NodeParameters, 
+             val::Union{Symbol,Expr,Real,AbstractArray{<:Real}}, 
              counter::Union{Nothing, Counter}=nothing) = 
              ConstantNode(node_parameters.name, val, counter)
 
@@ -96,8 +100,8 @@ function OperationalNode(name::Union{Nothing, String},
     
     evaled_val = eval(val)
     val_type = typeof(evaled_val)
-    @assert val_type <: Union{Real, AbstractArray}
-    if val_type <: AbstractArray
+    @assert val_type <: Union{Real, AbstractArray{<:Real}}
+    if val_type <: AbstractArray{<:Real}
         return OperationalNode(var_name, val, operator_name, left_operand, right_operand, size(evaled_val), eltype(evaled_val))
     else
         return OperationalNode(var_name, val, operator_name, left_operand, right_operand, 1, eltype(evaled_val))
@@ -149,16 +153,10 @@ function Base.:push!(nodes_queue::NodesQueue, node::Node)
 end
 
 function Base.:popfirst!(nodes_queue::NodesQueue)
-    popfirst!(nodes_queue.nodes)
     popfirst!(nodes_queue.node_names)
+    popfirst!(nodes_queue.nodes)
 end
 
-function Base.:∈(node::Node, nodes_queue::NodesQueue)
-    return node.name ∈ nodes_queue.node_names
-end
-
-Base.:∉(node::Node, nodes_queue::NodesQueue) = !∈(node, nodes_queue)
-
-function Base.:length(nodes_queue::NodesQueue)
-    return length(nodes_queue.nodes)
-end
+Base.:∈(node::Node, nodes_queue::NodesQueue) = node.name ∈ nodes_queue.node_names
+Base.:∉(node::Node, nodes_queue::NodesQueue) = !(node ∈ nodes_queue)
+Base.:length(nodes_queue::NodesQueue) = length(nodes_queue.nodes)
