@@ -24,12 +24,10 @@ function gradient(node::Node,
 
             operator_grad = getfield(Main, Symbol(current_operator_name * "_grad"))
             next_adjoint = operator_grad(current_adjoint, current_node)
-            println(next_adjoint)
 
             left_adjoint_val = haskey(adjoint, current_node.left_operand.name) ? 
-                               adjoint[current_node.left_operand.name] + next_adjoint[1] :
-                               next_adjoint[1]
-            println(left_adjoint_val)
+                               :($(adjoint[current_node.left_operand.name]) + $(next_adjoint[1])) :
+                               :($(next_adjoint[1]))
             left_adjoint = ConstantNode(nothing, left_adjoint_val, constant_counter)
             adjoint[current_node.left_operand.name] = unbroadcast_adjoint(left_adjoint, current_node.left_operand)
 
@@ -37,11 +35,10 @@ function gradient(node::Node,
                 push!(queue, current_node.left_operand)
             end
 
-            println("hi")
             if !isnothing(current_node.right_operand)
                 right_adjoint_val = haskey(adjoint, current_node.right_operand.name) ? 
-                                    adjoint[current_node.right_operand.name] + next_adjoint[2] :
-                                    next_adjoint[2]
+                                    :($(adjoint[current_node.right_operand.name]) + $(next_adjoint[2])) :
+                                    :($(next_adjoint[2]))
                 right_adjoint = ConstantNode(nothing, right_adjoint_val, constant_counter)
                 adjoint[current_node.right_operand.name] = unbroadcast_adjoint(right_adjoint, current_node.right_operand)
 

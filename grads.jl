@@ -1,37 +1,37 @@
 function add_grad(prev_adjoint::ConstantNode, node::Node)
-    return [eval(prev_adjoint.val), eval(prev_adjoint.val)]
+    return [:($(prev_adjoint.val)), :($(prev_adjoint.val))]
 end
 
 function subtract_grad(prev_adjoint::ConstantNode, node::Node)
-    return [eval(prev_adjoint.val), -eval(prev_adjoint.val)]
+    return [:($(prev_adjoint.val)), :(-$(prev_adjoint.val))]
 end
 
 function multiply_grad(prev_adjoint::ConstantNode, node::Node)
-    return [eval(prev_adjoint.val) * eval(node.right_operand.val), 
-            eval(prev_adjoint.val) * eval(node.left_operand.val)]
+    return [:($(prev_adjoint.val) * $(node.right_operand.val)), 
+            :($(prev_adjoint.val) * $(node.left_operand.val))]
 end
 
 function divide_grad(prev_adjoint::ConstantNode, node::Node)
-    return [eval(prev_adjoint.val) / eval(node.right_operand.val), 
-            -(eval(prev_adjoint.val) * (eval(node.left_operand.val) / (eval(node.right_operand.val) ^ 2)))]
+    return [:($(prev_adjoint.val) / $(node.right_operand.val)), 
+            :(-($(prev_adjoint.val) * $(node.left_operand.val)) / ($(node.right_operand.val) ^ 2))]
 end
 
 function power_grad(prev_adjoint::ConstantNode, node::Node)
-    return [eval(prev_adjoint.val) * eval(node.right_operand.val) * (eval(node.left_operand.val) ^ eval(node.right_operand.val)),
-            eval(prev_adjoint.val) * log(eval(node.left_operand.val)) * eval(node.val)]
+    return [:($(prev_adjoint.val) * $(node.right_operand.val) * ($(node.left_operand.val) ^ $(node.right_operand.val))),
+            :($(prev_adjoint.val) * log($(node.left_operand.val)) * $(node.val))]
 end
 
 function dot_product_grad(prev_adjoint::ConstantNode, node::Node)
-    return [eval(prev_adjoint.val) * transpose(eval(node.right_operand.val)), 
-            transpose(eval(node.left_operand.val)) * eval(prev_adjoint.val)]
+    return [:($(prev_adjoint.val) * transpose($(node.right_operand.val))), 
+            :(transpose($(node.left_operand.val)) * $(prev_adjoint.val))]
 end
 
 function transpose_grad(prev_adjoint::ConstantNode, node::Node)
-    return [transpose(eval(prev_adjoint.val)), nothing]
+    return [:(transpose($(prev_adjoint.val))), nothing]
 end
 
 function sum_grad(prev_adjoint::ConstantNode, node::Node)
-    return [eval(prev_adjoint.val) * ones(node.left_operand.size), nothing]
+    return [:($(prev_adjoint.val) * ones($(node.left_operand.size))), nothing]
 end
 
 function maximum_grad(prev_adjoint::ConstantNode, node::Node; dims::Union{Nothing, Int}=nothing)
@@ -39,23 +39,23 @@ function maximum_grad(prev_adjoint::ConstantNode, node::Node; dims::Union{Nothin
     maxs_in_node_idx = ifelse.(eval(node.left_operand.val) .== max_val, 1, 0)
     grad_denom = sum(maxs_in_node_idx, dims=dims)
     grad = maxs_in_node_idx ./ grad_denom
-    return [eval(prev_adjoint.val) * grad, nothing]
+    return [:($(prev_adjoint.val) * grad), nothing]
 end
 
 function exp_grad(prev_adjoint::ConstantNode, node::Node)
-    return [eval(prev_adjoint.val) * eval(node.val), nothing]
+    return [:($(prev_adjoint.val) * $(node.val)), nothing]
 end
 
 function log_grad(prev_adjoint::ConstantNode, node::Node)
-    return [eval(prev_adjoint.val) / eval(node.left_operand.val), nothing]
+    return [:($(prev_adjoint.val) / $(node.left_operand.val)), nothing]
 end
 
 function sin_grad(prev_adjoint::ConstantNode, node::Node)
-    return [eval(prev_adjoint.val) * cos.(eval(node.left_operand.val)), nothing]
+    return [:($(prev_adjoint.val) * cos.($(node.left_operand.val))), nothing]
 end
 
 function cos_grad(prev_adjoint::ConstantNode, node::Node)
-    return [-eval(prev_adjoint.val) * sin.(eval(node.left_operand.val)), nothing]
+    return [:(-$(prev_adjoint.val) * sin.($(node.left_operand.val))), nothing]
 end
 
 function unbroadcast_adjoint(adjoint::ConstantNode, node::Node)
@@ -75,7 +75,6 @@ function unbroadcast_adjoint(adjoint::ConstantNode, node::Node)
                 return summation_diff_adjoint
             end
         end
-    else
-        return adjoint
     end
+    return adjoint
 end
