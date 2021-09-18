@@ -6,12 +6,34 @@ end
 
 NodeParameters() = NodeParameters(nothing)
 
-mutable struct Counter{T}
+abstract type AbstractCounter end
+
+mutable struct Counter{T} <: AbstractCounter
     node_type::T
     count::Int
 end
 
-Counter(node_type::Union{Node, Type{<:Node}}) = Counter(node_type, 0)
+Counter(node_type::Type{<:Node}) = Counter(node_type, 0)
+
+mutable struct DictCounter{T} <: AbstractCounter
+    node_type::T
+    count_dict::Dict{String, Int}
+end
+
+function initialise_count_dict()
+    op_symbols = [:+, :-, :*, :/, :÷, :^, :sum, :exp, :log, :sin, :cos, :transpose, :maximum, :⋅]
+    op_broadcast_symbols = [:+, :-, :*, :/, :÷, :^, :exp, :log, :sin, :cos]
+    op_names = vcat(prettify_operator_name.(op_symbols, broadcast_method=false), 
+                    prettify_operator_name.(op_broadcast_symbols, broadcast_method=true))
+    count_dict = Dict([op_name => 0 for op_name in op_names])
+    return count_dict
+end
+
+DictCounter(node_type::Type{<:Node}) = DictCounter(node_type, initialise_count_dict())
+Base.getindex(dict_counter::DictCounter, key::String) = getindex(dict_counter.count_dict, key)
+Base.setindex!(dict_counter::DictCounter, val::Int, key::String) = setindex!(dict_counter.count_dict, val, key)
+Base.firstindex(dict_counter::DictCounter) = firstindex(dict_counter.count_dict)
+Base.lastindex(dict_counter::DictCounter) = lastindex(dict_counter.count_dict)
 
 struct VariableNode <: Node
     name::String
@@ -90,12 +112,12 @@ end
 function OperationalNode(name::Union{Nothing, String}, 
                          val::Union{Symbol,Expr}, operator_name::String, 
                          left_operand::Node, right_operand::Union{Nothing, Node}=nothing,
-                         counter::Union{Nothing, Counter}=nothing)
+                         counter::Union{Nothing, DictCounter}=nothing)
     if isnothing(counter)
         var_name = isnothing(name) ? "$(operator_name)_1" : name
     else
-        counter.count += 1
-        var_name = isnothing(name) ? "$(operator_name)_$(counter.count)" : name
+        counter[operator_name] += 1
+        var_name = isnothing(name) ? "$(operator_name)_$(counter[operator_name])" : name
     end
     
     evaled_val = eval(val)
@@ -110,12 +132,12 @@ end
 
 OperationalNode(node_parameters::NodeParameters, val::Union{Symbol,Expr}, operator_name::String,
                 left_operand::Node, right_operand::Union{Nothing, Node}=nothing, 
-                counter::Union{Nothing, Counter}=nothing) = 
+                counter::Union{Nothing, DictCounter}=nothing) = 
                 OperationalNode(node_parameters.name, val, operator_name, left_operand, right_operand, counter)
 
 function create_opnode(method::Symbol, left_node::Node, 
                        right_node::Union{Nothing, Node}=nothing, 
-                       counter::Union{Nothing, Counter}=nothing,
+                       counter::Union{Nothing, DictCounter}=nothing,
                        name::Union{Nothing,String}=nothing;
                        broadcast_method::Bool=false, dims::Union{Nothing,Int}=nothing)
     if isnothing(right_node) & (method != (:maximum))
@@ -125,11 +147,11 @@ function create_opnode(method::Symbol, left_node::Node,
     else
         val = broadcast_method ? Expr(:call, :broadcast, method, left_node.val, right_node.val) : Expr(:call, method, left_node.val, right_node.val)
     end
-    pretty_operator_name = prettify_operator_name(method, broadcast_method)
+    pretty_operator_name = prettify_operator_name(method; broadcast_method=broadcast_method)
     return OperationalNode(name, val, pretty_operator_name, left_node, right_node, counter)
 end
 
-function prettify_operator_name(method::Symbol, broadcast_method::Bool)
+function prettify_operator_name(method::Symbol; broadcast_method::Bool=false)
     name_dict = Dict{Symbol, String}(
         (:+) => "add", (:-) => "subtract", (:*) => "multiply", (:/) => "divide",
         (:÷) => "integer_divide", (:^) => "power", (:⋅) => "dot_product", 
