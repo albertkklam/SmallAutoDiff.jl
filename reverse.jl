@@ -5,7 +5,9 @@ function gradient(node::Node,
     grad = Dict{String, Node}()
     queue = NodesQueue()
 
-    constant_counter = isnothing(counters) ? nothing : counters["ConstantNode"]
+    constant_counter = isnothing(counters) ? nothing : 
+                       haskey(counters, "ConstantNode") ? counters["ConstantNode"] : 
+                       nothing
 
     adjoint[node.name] = ConstantNode(nothing, initial_const, constant_counter)
     push!(queue, node)

@@ -8,4 +8,4 @@ c_3 = ConstantNode("c_3", 3)
 
 f = sin(x ^ (y + z)) - c_1 * log((x ^ c_2) * (y ^ c_3))
 
-println(eval(f.val)) # prints -8.014816644264268
+println("This should print ≈-8.0148166: ", eval(f.val))

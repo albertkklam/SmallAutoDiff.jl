@@ -115,8 +115,8 @@ OperationalNode(node_parameters::NodeParameters, val::Union{Symbol,Expr}, operat
 
 function create_opnode(method::Symbol, left_node::Node, 
                        right_node::Union{Nothing, Node}=nothing, 
-                       name::Union{Nothing,String}=nothing, 
-                       counter::Union{Nothing, Counter}=nothing;
+                       counter::Union{Nothing, Counter}=nothing,
+                       name::Union{Nothing,String}=nothing;
                        broadcast_method::Bool=false, dims::Union{Nothing,Int}=nothing)
     if isnothing(right_node) & (method != (:maximum))
         val = broadcast_method ? Expr(:call, :broadcast, method, left_node.val) : Expr(:call, method, left_node.val)
