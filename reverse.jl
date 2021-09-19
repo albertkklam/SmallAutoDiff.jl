@@ -1,6 +1,6 @@
 function gradient(node::Node, 
                   initial_const::Union{Real,AbstractArray{<:Real}},
-                  counters::Union{Nothing,Dict{String, Counter{T}}}=nothing) where {T}
+                  counters::Union{Nothing,Dict{String, <:AbstractCounter}}=nothing)
     adjoint = Dict{String, Node}()
     grad = Dict{String, Node}()
     queue = NodesQueue()

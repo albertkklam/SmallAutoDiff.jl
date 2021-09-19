@@ -64,7 +64,7 @@ end
 
 VariableNode(node_parameters::NodeParameters, 
              val::Union{Symbol,Expr,Real,AbstractArray{<:Real}}, 
-             counter::Union{Nothing, Counter}=nothing) = 
+             counter::Union{Nothing, AbstractCounter}=nothing) = 
              VariableNode(node_parameters.name, val, counter)
 
 struct ConstantNode <: Node
@@ -96,7 +96,7 @@ end
 
 ConstantNode(node_parameters::NodeParameters, 
              val::Union{Symbol,Expr,Real,AbstractArray{<:Real}}, 
-             counter::Union{Nothing, Counter}=nothing) = 
+             counter::Union{Nothing, AbstractCounter}=nothing) = 
              ConstantNode(node_parameters.name, val, counter)
 
 struct OperationalNode <: Node
@@ -132,12 +132,12 @@ end
 
 OperationalNode(node_parameters::NodeParameters, val::Union{Symbol,Expr}, operator_name::String,
                 left_operand::Node, right_operand::Union{Nothing, Node}=nothing, 
-                counter::Union{Nothing, DictCounter}=nothing) = 
+                counter::Union{Nothing, AbstractCounter}=nothing) = 
                 OperationalNode(node_parameters.name, val, operator_name, left_operand, right_operand, counter)
 
 function create_opnode(method::Symbol, left_node::Node, 
                        right_node::Union{Nothing, Node}=nothing, 
-                       counter::Union{Nothing, DictCounter}=nothing,
+                       counter::Union{Nothing, AbstractCounter}=nothing,
                        name::Union{Nothing,String}=nothing;
                        broadcast_method::Bool=false, dims::Union{Nothing,Int}=nothing)
     if isnothing(right_node) & (method != (:maximum))
