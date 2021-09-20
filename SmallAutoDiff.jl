@@ -19,6 +19,6 @@ export add_grad, subtract_grad, multiply_grad, divide_grad, power_grad, dot_prod
 export transpose_grad, maximum_grad, sum_grad, exp_grad, log_grad, sin_grad, cos_grad, unbroadcast_adjoint
 
 include("reverse.jl")
-export gradient, check_gradient
+export gradient, compute_approximate_gradient, check_gradient
 
 end

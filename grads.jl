@@ -3,7 +3,7 @@ function add_grad(prev_adjoint::ConstantNode, node::Node)
 end
 
 function subtract_grad(prev_adjoint::ConstantNode, node::Node)
-    return [:($(prev_adjoint.val)), :(-$(prev_adjoint.val))]
+    return [:($(prev_adjoint.val)), :(-($(prev_adjoint.val)))]
 end
 
 function multiply_grad(prev_adjoint::ConstantNode, node::Node)
@@ -17,7 +17,7 @@ function divide_grad(prev_adjoint::ConstantNode, node::Node)
 end
 
 function power_grad(prev_adjoint::ConstantNode, node::Node)
-    return [:($(prev_adjoint.val) * $(node.right_operand.val) * ($(node.left_operand.val) ^ $(node.right_operand.val))),
+    return [:($(prev_adjoint.val) * $(node.right_operand.val) * ($(node.left_operand.val) ^ ($(node.right_operand.val) - 1))),
             :($(prev_adjoint.val) * log($(node.left_operand.val)) * $(node.val))]
 end
 
