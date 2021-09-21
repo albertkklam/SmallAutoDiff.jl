@@ -1,4 +1,22 @@
 # Example 1
+f1(x::DualNumber) = sin(x) ^ sin(x)
+ad_derivative = derivative(f1, 1, pi/4)
+println("This should print ≈0.3616192: ", ad_derivative)
+
+# Example 2
+f2(x::Union{Real, DualNumber}) = (x ^ 2) * (2 ^ x)
+ad_derivative = first(derivative(f2, 0.5))
+println("This should print ≈1.6592781: ", ad_derivative)
+println("Is the gradient approximately correct? (this should print true): ", check_derivative(f2, 1, 0.5, ad_derivative))
+
+# Example 3
+f3(x::Union{Real, DualNumber}, y::Union{Real, DualNumber}, z::Union{Real, DualNumber}) = sin(x ^ (y + z)) - (3 * z * log((x ^ 2) * (y ^ 3)))
+ad_derivative = derivative(f3, 2, [0.5, 4, -2.3])
+
+println("This should print ≈4.9716846: ", ad_derivative)
+println("Is the gradient approximately correct? (this should print true): ", check_derivative(f3, 2, [0.5, 4, -2.3], ad_derivative))
+
+# Example 4
 x = VariableNode("x", 0.5)
 y = VariableNode("y", 4)
 z = VariableNode("z", -2.3)
@@ -11,7 +29,7 @@ f = sin(x ^ (y + z)) - c_1 * log((x ^ c_2) * (y ^ c_3))
 
 println("This should print ≈-8.0148166: ", eval(f.val))
 
-# Example 2
+# Example 5
 function small_func(x_val::Real, y_val::Real, z_val::Real; 
                     counters::Union{Nothing,Dict{String, AbstractCounter}}=nothing)
     constant_counter = isnothing(counters) ? nothing : 

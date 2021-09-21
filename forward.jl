@@ -13,8 +13,14 @@ differentiate(fx::Function, wrt_var_idx::Int) = ((args::Union{<:Real, Array{<:Re
 
 function check_derivative(fx::Function, wrt_var_idx::Int, args::Union{<:Real, Array{<:Real}}, suspect::Real; 
                           h::Real=1e-7, rel_err::Real=1e-5, abs_err::Real=1e-8)
-    shifted_args = args .+ h
+    shifted_args = isa(args, Real) ? copy(convert(Float64, args)) : copy(convert(Array{Float64},args))
+    if isa(shifted_args, Array{Float64})
+        shifted_args[wrt_var_idx] += h
+    else
+        @assert wrt_var_idx == 1
+        shifted_args += h
+    end
     numerical_derivative = (fx(shifted_args...) - fx(args...)) / h
-    err_threshold = abs_err + abs(numerical_derivative) * rel_err
+    err_threshold = abs_err + (abs(numerical_derivative) * rel_err)
     return abs(suspect - numerical_derivative) <= err_threshold
 end
