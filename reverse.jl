@@ -56,7 +56,7 @@ end
 function compute_approximate_gradient(func::Function, args::Union{Real, AbstractArray{<:Real}}, 
                                       suspect::Union{Real, AbstractArray{<:Real}})
     h = 1e-8
-    approx_grad = []
+    approx_grad = Real[]
 
     for arg_idx in eachindex(args)
         shifted_args = copy(args)
